@@ -1,0 +1,31 @@
+husky_spike_esp32
+Copyright (C) 2026 daewonlee81
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
+
+------------------------------------------------------------------------
+This project includes and/or derives from the following GPL-3.0 works:
+
+- firmware/lpf2.py, firmware/pupremote.py
+  Copyright (C) Anton Vanhoucke & Ste7an, Anton's Mindstorms
+  https://github.com/antonvh/PUPRemote
+  (lpf2.py here is modified to add SPIKE3 combo-mode support.)
+
+- SPIKE color sensor mode structure / combo-mode behavior is based on
+  MyOwnBricks, Copyright (C) Ysard
+  https://github.com/ysard/MyOwnBricks
+
+Full GPL-3.0 license text: https://www.gnu.org/licenses/gpl-3.0.txt
+(You may place the full text in this file: curl -o LICENSE https://www.gnu.org/licenses/gpl-3.0.txt
+ — then re-add the credits above.)

@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# MicroPython firmware images (download via tools/install_firmware.py)
+*.bin
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
