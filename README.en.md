@@ -136,6 +136,29 @@ orientations. Print the frame so the pin holes run along the print bed for the s
 | Values never change | HuskyLens Serial 9600, color learned, T→GPIO16 and R→GPIO17 crossed correctly |
 | Odd values persist | Restart the sensor view in the SPIKE app (clears cached readings) |
 
+## Related work — and how this project differs
+
+The idea of emulating a color sensor is not new. Here is how this repository compares.
+
+| Project | Approach | Word blocks | Board |
+|---|---|---|---|
+| [Anton's Mindstorms — HuskyLens with Block Code](https://www.antonsmindstorms.com/2025/07/26/huskylens-spike-prime-blocks/) (2025) | Color-sensor emulation + MicroBlocks | ✅ | Dedicated **LMS-ESP32** |
+| [Anton's Mindstorms — Pybricks + HuskyLens](https://www.antonsmindstorms.com/2024/11/24/pybricks-huskylens-a-simple-spike-prime-camera-line-follower/) | Pybricks Python | ❌ | LMS-ESP32 |
+| [ysard/MyOwnBricks](https://github.com/ysard/MyOwnBricks) | Arduino color-sensor emulation library | (no hub-connected example) | AVR / Arduino |
+| [DanieleBenedettelli/HuskyLensSPIKE](https://github.com/DanieleBenedettelli/HuskyLensSPIKE) | MicroPython library on the hub itself | ❌ | No extra board |
+| **This repository** | Color-sensor emulation + **MicroPython** | ✅ | **Generic NodeMCU ESP-32S** |
+
+What is specific to this repository:
+
+- **No dedicated board required** — any common NodeMCU ESP-32S (WROOM) works.
+- **MicroPython with a combo-mode patch.** SPIKE App 3 reads color-sensor values through combo mode
+  (`0x5C`). This firmware parses that request and answers with the values in exactly the same order and
+  size. The published `lpf2.py` (antonvh/PUPRemote) does not handle combo mode, so word blocks read
+  65535 — this patch is the core contribution here.
+- A documented mapping of HuskyLens **ID / center X / center Y / width W** onto color, raw red, raw
+  green and raw blue.
+- Ships with a 3D-printable mount (STL), an automated installer, and a lesson book for young learners.
+
 ## License & credits
 
 Released under **GPL-3.0** (see [LICENSE](LICENSE)). This project uses and builds on the following

@@ -133,6 +133,27 @@ docs/
 | 값이 안 변함 | 허스키 Serial 9600 / 색 학습, T→GPIO16·R→GPIO17 교차 확인 |
 | 이상값 지속 | SPIKE 앱 센서 화면 재시작(캐시 방지) |
 
+## 관련 연구 / 이 프로젝트가 다른 점
+
+비슷한 시도가 이미 있습니다. 무엇이 다른지 정리합니다.
+
+| 프로젝트 | 방식 | 워드 블럭 | 보드 |
+|---|---|---|---|
+| [Anton's Mindstorms — HuskyLens with Block Code](https://www.antonsmindstorms.com/2025/07/26/huskylens-spike-prime-blocks/) (2025) | 색 센서 위장 + MicroBlocks | ✅ | 전용 **LMS-ESP32** |
+| [Anton's Mindstorms — Pybricks + HuskyLens](https://www.antonsmindstorms.com/2024/11/24/pybricks-huskylens-a-simple-spike-prime-camera-line-follower/) | Pybricks 파이썬 | ❌ | LMS-ESP32 |
+| [ysard/MyOwnBricks](https://github.com/ysard/MyOwnBricks) | 아두이노 색 센서 에뮬레이션 라이브러리 | (허브 연결 예제 없음) | AVR/아두이노 |
+| [DanieleBenedettelli/HuskyLensSPIKE](https://github.com/DanieleBenedettelli/HuskyLensSPIKE) | 허브 MicroPython 라이브러리 | ❌ | 보드 불필요 |
+| **이 저장소** | 색 센서 위장 + **MicroPython** | ✅ | **범용 NodeMCU ESP-32S** |
+
+이 저장소의 특징:
+
+- **전용 보드가 필요 없습니다.** 흔한 NodeMCU ESP-32S(WROOM) 한 장이면 됩니다.
+- **MicroPython + 콤보 모드 패치.** SPIKE App 3가 색 센서 값을 읽을 때 쓰는 콤보 모드(`0x5C`) 요청을
+  직접 파싱해 같은 순서·크기로 응답합니다. 공개된 `lpf2.py`(antonvh/PUPRemote)는 콤보를 처리하지 않아
+  워드 블럭에서 65535가 나옵니다 — 이 패치가 핵심 기여입니다.
+- HuskyLens의 **ID / 중심 X / 중심 Y / 가로폭 W** 를 색상·원시 빨강·초록·파랑에 매핑하는 규칙을 문서화했습니다.
+- 3D 프린트 마운트 STL, 자동 설치 스크립트, 초등학생용 학습 참고서를 함께 제공합니다.
+
 ## 라이선스 / 크레딧
 
 이 프로젝트는 **GPL-3.0**으로 배포됩니다([LICENSE](LICENSE)). 다음 GPL 오픈소스를 사용/참고했습니다:
