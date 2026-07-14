@@ -2,6 +2,8 @@
 
 **HuskyLens → ESP32 → LEGO SPIKE Prime: 색 센서로 위장해 워드 블럭에서 색상/위치 추적**
 
+*한국어 · [English README](README.en.md)*
+
 ESP32가 SPIKE 허브에게 자신을 **레고 색 센서**로 위장합니다. HuskyLens(AI 카메라)가
 인식한 색·물체의 위치를 색 센서의 **원시 빨강/초록/파랑** 값에 실어 보내면, SPIKE App 3의
 스크래치 기반 **워드 블럭에서 추가 설치 없이** 그 값을 읽어 색상 추적 로봇을 만들 수 있습니다.
@@ -67,14 +69,19 @@ GND·3.3V를 먼저 확인하세요. 테스트 중에는 ESP32를 USB로 전원 
 
 ## 워드 블럭 튜토리얼: 색상 따라가기
 
-학습한 색을 화면 중앙에 두도록 모터(포트 A)를 좌우로 돌리는 기본 추적 프로그램입니다.
+학습한 색이 화면 **중앙에 오도록** 로봇이 좌우로 회전하는 실제 동작 프로그램입니다.
+(구동 모터 **A+E**, 동작 속도 **15 %**, 센서는 포트 **C**)
 
-![tracking](docs/blocks_tracking.png)
+![tracking](docs/redball_blocks.png)
 
-- 원시 빨강(X)이 중앙(160)보다 작으면 색이 왼쪽 → 왼쪽으로 회전
-- 크면 오른쪽 → 오른쪽으로 회전
-- 발전: `색상=0`(감지 없음)이면 정지, `원시 파랑(W)`로 거리 유지, `색상(ID)`로 특정 색만 반응
+- **원시 빨강(X) ＜ 120** → 물체가 왼쪽 → 왼쪽(-100)으로 회전
+- **원시 빨강(X) ＞ 200** → 물체가 오른쪽 → 오른쪽(100)으로 회전
+- 그 사이(120~200) → 중앙 → **이동 멈추기**
 
+발전 아이디어: `원시 파랑(W)`으로 거리 유지(가까우면 후진), `색상(ID)`으로 특정 색만 반응,
+`원시 초록(Y)`으로 카메라를 위아래로 기울이기.
+
+같은 동작의 **파이썬 버전**은 [`examples/red_ball_tracker.py`](examples/red_ball_tracker.py)에 있습니다.
 자세한 단계별 튜토리얼과 그림은 [`docs/허스키렌즈_SPIKE_최종가이드.docx`](docs/)를 참고하세요.
 
 ## 동작 원리 (콤보 모드)
@@ -87,6 +94,14 @@ SPIKE3는 색 센서의 여러 값을 한 번에 읽기 위해 **콤보 모드**
 일반 `lpf2` 라이브러리는 콤보 모드를 처리하지 않아 빈 값(65535)이 나오므로, 이 저장소의
 `lpf2.py`는 콤보 처리(`0x5C`/`0x4C` + 동적 응답)를 추가한 패치본을 사용합니다.
 
+## 3D 프린트 허스키렌즈 마운트
+
+`hardware/huskylens_lego_mount.stl` 은 허스키렌즈를 잡아 **레고 테크닉 빔에 고정**하는 브래킷입니다.
+카메라를 로봇에 단단히 달 수 있습니다.
+
+권장 출력 설정: PLA, 레이어 0.2mm, 채움 ~20%, 대부분 방향에서 서포트 불필요.
+핀 구멍이 베드와 나란하도록 눕혀 출력하면 결합이 가장 튼튼합니다.
+
 ## 파일 구성
 
 ```
@@ -96,9 +111,14 @@ firmware/
   pupremote.py     PUPRemote 라이브러리
 tools/
   install_firmware.py   MicroPython + 펌웨어 자동 설치 스크립트
+examples/
+  red_ball_tracker.py   SPIKE 3 파이썬 버전 추적 코드
+hardware/
+  huskylens_lego_mount.stl   3D 프린트용 허스키렌즈 레고 마운트
 docs/
-  wiring.png, blocks_mapping.png, blocks_tracking.png
+  wiring.png, blocks_mapping.png, blocks_tracking.png, redball_blocks.png
   허스키렌즈_SPIKE_최종가이드.docx
+  초등_AI로봇_학습참고서.docx / .pdf   (초등학생용 학습 참고서)
 ```
 
 ## 트러블슈팅

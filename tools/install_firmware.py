@@ -37,6 +37,13 @@ FLASH_OFFSET = "0x1000"       # 일반 ESP32는 0x1000 (C3/S3는 0x0)
 HERE = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FILES = ["lpf2.py", "pupremote.py", "main.py"]
 
+# 펌웨어 .py 파일 위치 찾기: 스크립트와 같은 폴더, 또는 ../firmware/ (깃 리포 구조)
+FW_DIR = HERE
+if not os.path.exists(os.path.join(HERE, "main.py")):
+    _alt = os.path.join(os.path.dirname(HERE), "firmware")
+    if os.path.exists(os.path.join(_alt, "main.py")):
+        FW_DIR = _alt
+
 
 def run(cmd):
     print("\n$ " + " ".join(cmd))
@@ -88,10 +95,11 @@ def mpremote_cmd(port, *args):
 
 
 def upload_files(port):
-    missing = [f for f in UPLOAD_FILES if not os.path.exists(os.path.join(HERE, f))]
+    missing = [f for f in UPLOAD_FILES if not os.path.exists(os.path.join(FW_DIR, f))]
     if missing:
-        print(f"[오류] 같은 폴더에 다음 파일이 없습니다: {', '.join(missing)}")
+        print(f"[오류] 펌웨어 파일을 못 찾았습니다({FW_DIR}): {', '.join(missing)}")
         sys.exit(1)
+    print(f"[업로드] 펌웨어 폴더: {FW_DIR}")
 
     # 보드가 재부팅 후 REPL 을 띄울 시간을 준 뒤, 몇 번 재시도
     print("\n[업로드] 보드 재부팅 대기 (5초)...")
@@ -100,7 +108,7 @@ def upload_files(port):
         print(f"[업로드] 시도 {attempt}/5")
         ok = True
         for f in UPLOAD_FILES:
-            rc = run(mpremote_cmd(port, "fs", "cp", os.path.join(HERE, f), ":" + f))
+            rc = run(mpremote_cmd(port, "fs", "cp", os.path.join(FW_DIR, f), ":" + f))
             if rc != 0:
                 ok = False
                 break
