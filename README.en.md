@@ -59,11 +59,14 @@ may still power up on the hub's 3.3 V, but barely). So it is best to power the c
 | Method | Summary | Notes |
 |---|---|---|
 | ⭐ **USB power** | USB (power bank) → ESP32; feed HuskyLens + from the **5V/VIN pin**, − from ESP32 GND | Fewest parts, most stable. **Do NOT connect hub pin 4 (3.3 V)** ([docs/usb_power.png](docs/usb_power.png)) |
-| Separate 5 V | Power only the HuskyLens from an independent 5 V (power bank / 18650 power-bank module); **share GND only** | [docs/sep_power.png](docs/sep_power.png) |
+| Battery (single 18650) | A power-bank board with built-in boost + protection (e.g. **DFR0968**): USB 5 V out → ESP32 USB | Simplest for a mobile robot ([docs/dfr0968_power.png](docs/dfr0968_power.png)) |
+| Battery (2S 18650) | 2×18650 in series (7.4 V) + **2S BMS** → **LM2596 down to 5 V** → ESP32 5V/VIN | If you have an LM2596 ([docs/bat18650_power.png](docs/bat18650_power.png)) |
+| Separate 5 V | Power only the HuskyLens from an independent 5 V; **share GND only** | [docs/sep_power.png](docs/sep_power.png) |
 | Hub 3.3 V + capacitor | Keep hub 3.3 V, add a **470–1000 µF** cap across the camera power pins | Stop-gap only ([docs/cap_diagram.png](docs/cap_diagram.png), [docs/full_wiring_cap.png](docs/full_wiring_cap.png)) |
 
-In every method **all grounds must meet at one common point**, or UART will not work. With a single
-18650 cell, do not connect it directly — use a **5 V boost/protection module**. The firmware is the
+In every method **all grounds must meet at one common point**, or UART will not work. Do not connect
+a single 18650 directly — use a board/module with **5 V boost + protection** (the DFR0968 has boost
+and over-charge/over-discharge protection built in, so one cell works directly). The firmware is the
 same regardless of how you power it.
 
 ## Install
