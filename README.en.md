@@ -34,17 +34,37 @@ the Scratch-based word blocks kids already know.
 
 ## Wiring
 
-![wiring](docs/wiring.png)
+The signal wiring is the same for every setup. **What differs is where the power comes from** (see
+*Powering it* below).
 
 | Link | One side | Other side |
 |---|---|---|
 | SPIKE UART | Hub pin 5 (TX) / pin 6 (RX) | ESP32 **GPIO18 / GPIO19** |
 | HuskyLens UART | HuskyLens T (green) / R (blue) | ESP32 **GPIO16 / GPIO17** |
-| Power 3.3 V | Hub pin 4 | ESP32 3V3 + HuskyLens + |
-| Ground | Hub pin 3 | ESP32 GND + HuskyLens − |
+| Ground (common) | Hub pin 3 | ESP32 GND + HuskyLens − |
 
-Everything is 3.3 V logic — **do not apply 5 V**. LPF2 pin numbering differs between cables, so
-check GND and 3.3 V with a multimeter first. During bench testing you can power the ESP32 from USB.
+The T/R lines must be **crossed** (HuskyLens T→GPIO16, R→GPIO17). LPF2 pin numbering differs
+between cables, so check GND and power with a multimeter first. Logic is 3.3 V.
+
+## Powering it (important)
+
+**Recommended: power the ESP32 from USB and feed the HuskyLens from the 5V pin.**
+
+![usb power](docs/usb_power.png)
+
+The HuskyLens draws 320 mA or more at 3.3 V. Feeding the camera from the hub's pin 4 (3.3 V) leaves
+almost no current margin, which can cause **high-pitched coil whine, voltage sag and reboots** (it
+may still power up on the hub's 3.3 V, but barely). So it is best to power the camera separately.
+
+| Method | Summary | Notes |
+|---|---|---|
+| ⭐ **USB power** | USB (power bank) → ESP32; feed HuskyLens + from the **5V/VIN pin**, − from ESP32 GND | Fewest parts, most stable. **Do NOT connect hub pin 4 (3.3 V)** ([docs/usb_power.png](docs/usb_power.png)) |
+| Separate 5 V | Power only the HuskyLens from an independent 5 V (power bank / 18650 power-bank module); **share GND only** | [docs/sep_power.png](docs/sep_power.png) |
+| Hub 3.3 V + capacitor | Keep hub 3.3 V, add a **470–1000 µF** cap across the camera power pins | Stop-gap only ([docs/cap_diagram.png](docs/cap_diagram.png), [docs/full_wiring_cap.png](docs/full_wiring_cap.png)) |
+
+In every method **all grounds must meet at one common point**, or UART will not work. With a single
+18650 cell, do not connect it directly — use a **5 V boost/protection module**. The firmware is the
+same regardless of how you power it.
 
 ## Install
 
@@ -87,6 +107,13 @@ tilt the camera up/down with `raw green` (Y).
 
 The same behavior as a SPIKE 3 **Python** program: [`examples/red_ball_tracker.py`](examples/red_ball_tracker.py).
 
+**Going further — follow (with forward/back).** Beyond left/right steering, this example also keeps a
+set distance using raw blue (W) to chase the object. Word blocks:
+[`docs/follow_blocks.png`](docs/follow_blocks.png), Python:
+[`examples/object_follower.py`](examples/object_follower.py).
+
+![follow](docs/follow_blocks.png)
+
 ## How it works (combo mode)
 
 SPIKE 3 reads several color-sensor values in one go using **combo mode** (a `0x5C` setup packet).
@@ -108,11 +135,15 @@ firmware/
 tools/
   install_firmware.py   Flashes MicroPython and uploads the firmware
 examples/
-  red_ball_tracker.py   SPIKE 3 Python version of the tracker
+  red_ball_tracker.py   SPIKE 3 Python tracker (left/right steering)
+  object_follower.py    Follower (steering + forward/back)
 hardware/
   huskylens_lego_mount.stl   3D-printable HuskyLens mount for LEGO Technic
 docs/
-  wiring.png, blocks_mapping.png, blocks_tracking.png, redball_blocks.png
+  usb_power.png         ⭐ recommended power wiring (USB)
+  sep_power.png, cap_diagram.png, full_wiring_cap.png   power options
+  redball_blocks.png, follow_blocks.png   word-block examples
+  blocks_mapping.png, blocks_tracking.png, wiring.png
   guide (DOCX), elementary-school lesson book (DOCX/PDF, Korean)
 ```
 

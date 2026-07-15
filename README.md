@@ -33,17 +33,36 @@ ESP32가 SPIKE 허브에게 자신을 **레고 색 센서**로 위장합니다. 
 
 ## 배선
 
-![wiring](docs/wiring.png)
+신호선은 어느 방식이든 동일합니다. **차이는 전원을 어디서 주느냐**입니다(아래 "전원 공급" 참고).
 
 | 연결 | 한쪽 | 다른 쪽 |
 |---|---|---|
 | SPIKE UART | 허브 핀5(TX) / 핀6(RX) | ESP32 **GPIO18 / GPIO19** |
 | HuskyLens UART | 허스키 T(초록) / R(파랑) | ESP32 **GPIO16 / GPIO17** |
-| 전원 3.3V | 허브 핀4 | ESP32 3V3 + 허스키 + |
-| 접지 GND | 허브 핀3 | ESP32 GND + 허스키 − |
+| 접지 GND (공통) | 허브 핀3 | ESP32 GND + 허스키 − |
 
-모든 신호·전원은 3.3V입니다(5V 금지). LPF2 핀 번호는 케이블마다 표기가 다르니 멀티미터로
-GND·3.3V를 먼저 확인하세요. 테스트 중에는 ESP32를 USB로 전원 공급해도 됩니다.
+신호선의 T/R는 반드시 **교차**(허스키 T→GPIO16, R→GPIO17)합니다. LPF2 핀 번호는 케이블마다
+표기가 다르니 멀티미터로 GND·전원을 먼저 확인하세요.
+
+## 전원 공급 (중요)
+
+**권장: USB로 ESP32를 켜고, 5V핀으로 HuskyLens 급전.**
+
+![usb power](docs/usb_power.png)
+
+HuskyLens는 3.3V에서 약 320mA 이상을 소모합니다. 허브 핀4(3.3V)로 카메라까지 함께 먹이면
+전류가 빠듯해 **고주파 코일 울음·전압 강하·리부팅**이 생길 수 있습니다(허브 3.3V만으로도 켜지긴
+하지만 마진이 거의 없습니다). 그래서 카메라 전원은 허브에서 분리하는 것을 권장합니다.
+
+| 방식 | 요약 | 비고 |
+|---|---|---|
+| ⭐ **USB 급전** | USB(파워뱅크)로 ESP32 → **5V/VIN 핀**으로 허스키 +, ESP32 GND로 − | 부품 최소·가장 안정. **허브 핀4(3.3V) 연결 금지**([docs/usb_power.png](docs/usb_power.png)) |
+| 별도 5V 전원 | 허스키만 독립 5V(파워뱅크·18650 파워뱅크 모듈), **GND만 공통** | [docs/sep_power.png](docs/sep_power.png) |
+| 허브 3.3V 공유 + 커패시터 | 허브 3.3V 유지 + 허스키 전원핀에 **470~1000µF** 병렬 | 임시 완화책 ([docs/cap_diagram.png](docs/cap_diagram.png), [docs/full_wiring_cap.png](docs/full_wiring_cap.png)) |
+
+어느 방식이든 **모든 GND는 한 점으로 공통 접지**해야 UART 통신이 됩니다. 신호는 3.3V 로직입니다.
+18650 단전지를 쓸 경우 직결하지 말고 **5V 승압·보호 모듈**을 거치세요. 펌웨어는 전원 방식과
+무관하게 그대로입니다.
 
 ## 설치
 
@@ -82,6 +101,13 @@ GND·3.3V를 먼저 확인하세요. 테스트 중에는 ESP32를 USB로 전원 
 `원시 초록(Y)`으로 카메라를 위아래로 기울이기.
 
 같은 동작의 **파이썬 버전**은 [`examples/red_ball_tracker.py`](examples/red_ball_tracker.py)에 있습니다.
+
+**한 걸음 더 — 따라가기(전진/후진 포함).** 좌우 조향에 더해 거리(원시 파랑 W)까지 맞춰
+물체를 쫓아가는 예제입니다. 워드 블럭 [`docs/follow_blocks.png`](docs/follow_blocks.png),
+파이썬 [`examples/object_follower.py`](examples/object_follower.py).
+
+![follow](docs/follow_blocks.png)
+
 자세한 단계별 튜토리얼과 그림은 [`docs/허스키렌즈_SPIKE_최종가이드.docx`](docs/)를 참고하세요.
 
 ## 동작 원리 (콤보 모드)
@@ -112,11 +138,15 @@ firmware/
 tools/
   install_firmware.py   MicroPython + 펌웨어 자동 설치 스크립트
 examples/
-  red_ball_tracker.py   SPIKE 3 파이썬 버전 추적 코드
+  red_ball_tracker.py   SPIKE 3 파이썬 추적 코드 (좌우 조향)
+  object_follower.py    따라가기 코드 (조향 + 전진/후진)
 hardware/
   huskylens_lego_mount.stl   3D 프린트용 허스키렌즈 레고 마운트
 docs/
-  wiring.png, blocks_mapping.png, blocks_tracking.png, redball_blocks.png
+  usb_power.png         ⭐ 권장 전원 배선 (USB 급전)
+  sep_power.png, cap_diagram.png, full_wiring_cap.png   전원 옵션 배선
+  redball_blocks.png, follow_blocks.png   워드 블럭 예제
+  blocks_mapping.png, blocks_tracking.png, wiring.png
   허스키렌즈_SPIKE_최종가이드.docx
   초등_AI로봇_학습참고서.docx / .pdf   (초등학생용 학습 참고서)
 ```
