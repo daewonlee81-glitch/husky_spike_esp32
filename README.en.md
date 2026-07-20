@@ -12,12 +12,28 @@ color sensor's **raw red / green / blue** values — so it can be read directly 
 The result: a LEGO robot that sees a colored object and follows it, programmed entirely with
 the Scratch-based word blocks kids already know.
 
+**Every HuskyLens algorithm is supported** — the firmware detects the data type automatically.
+
+**① Block algorithms** — color / object / object-tracking / face / tag recognition, classification
+
 | Word block | Value it carries | Range |
 |---|---|---|
-| **color** | Detected ID (which color) | 0 ~ |
+| **color** | Detected ID | 0 ~ |
 | **raw red** | Center X (left ↔ right) | 0 ~ 320 |
 | **raw green** | Center Y (up ↕ down) | 0 ~ 240 |
 | **raw blue** | Width W (larger = closer) | 0 ~ |
+
+**② Arrow algorithm** — Line Tracking
+
+| Word block | Value it carries | Range |
+|---|---|---|
+| **color** | 1 = line detected, 0 = none | 0 / 1 |
+| **raw red** | Arrow origin X (right in front of the robot) | 0 ~ 320 |
+| **raw green** | Arrow target X (where the line heads) | 0 ~ 320 |
+| **raw blue** | Arrow target Y | 0 ~ 240 |
+
+Nothing to configure on the ESP32 — **just switch the algorithm on the HuskyLens** and the meaning
+of the values changes; only your SPIKE program needs to match.
 
 ---
 
@@ -117,6 +133,24 @@ set distance using raw blue (W) to chase the object. Word blocks:
 
 ![follow](docs/follow_blocks.png)
 
+**Search + track + stop.** A three-way version: spin to search when nothing is visible, stop when the
+object is very close. [`docs/smart_tracker_blocks.png`](docs/smart_tracker_blocks.png) /
+[`examples/smart_color_tracker.py`](examples/smart_color_tracker.py).
+
+## Line tracing
+
+Switch the HuskyLens algorithm to **Line Tracking**, learn a line, and the same firmware turns the
+robot into a line follower. Steering comes from **raw red** (the line position right in front of the
+robot, centre = 160).
+
+![line](docs/line_blocks.png)
+
+The Python version [`examples/line_follower.py`](examples/line_follower.py) also adds
+**raw green − raw red** (how the line curves ahead) for smoother cornering.
+
+> If it steers the wrong way, swap the motor pair; if it wobbles, divide by a larger number
+> (`÷2` → `÷3`). Make sure the sensor blocks all use **the port the ESP32 is plugged into**.
+
 ## How it works (combo mode)
 
 SPIKE 3 reads several color-sensor values in one go using **combo mode** (a `0x5C` setup packet).
@@ -138,8 +172,10 @@ firmware/
 tools/
   install_firmware.py   Flashes MicroPython and uploads the firmware
 examples/
-  red_ball_tracker.py   SPIKE 3 Python tracker (left/right steering)
-  object_follower.py    Follower (steering + forward/back)
+  red_ball_tracker.py     SPIKE 3 Python tracker (left/right steering)
+  object_follower.py      Follower (steering + forward/back)
+  smart_color_tracker.py  Search + track + stop (three-way)
+  line_follower.py        Line tracing (Line Tracking mode)
 hardware/
   huskylens_lego_mount.stl   3D-printable HuskyLens mount for LEGO Technic
 docs/
