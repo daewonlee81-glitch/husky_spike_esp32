@@ -55,6 +55,8 @@
 #         허스키 T(초록)→GPIO16,  R(파랑)→GPIO17,  −(검정)→GND
 #    · 전원 : 허스키렌즈는 5V 급전 권장(USB/파워뱅크). GND 는 반드시 공통.
 #             허브 3.3V(핀4) 공유는 전류가 빠듯해 권장하지 않음.
+#    · 조명 : WS2812(NeoPixel) 8개 → 데이터 GPIO26,  V=5V(허스키와 Y자 분기),
+#             GND 공통.  전원 인가 시 흰색으로 자동 점등(광량 확보용).
 #
 #  ■ 필요 파일 : 같은 폴더에 lpf2.py (콤보 모드 패치본), pupremote.py
 # =====================================================================
@@ -63,6 +65,10 @@ from machine import UART, Pin
 import time
 import struct
 import lpf2
+try:
+    import neopixel
+except ImportError:
+    neopixel = None
 
 # ---- 설정 -----------------------------------------------------------
 HL_UART_ID = 1          # 허스키렌즈용 UART 번호
@@ -70,6 +76,13 @@ HL_RX_PIN  = 16         # ESP32 RX ← 허스키 T(초록)
 HL_TX_PIN  = 17         # ESP32 TX → 허스키 R(파랑)
 HL_BAUD    = 9600       # 허스키렌즈 Protocol Type = Serial 9600
 LED_PIN    = 2          # 온보드 LED (연결 상태 표시)
+
+# ---- 카메라 조명 (WS2812 / NeoPixel) --------------------------------
+NEO_PIN   = 26          # WS2812 데이터(Din) → GPIO26
+NEO_COUNT = 8           # LED 개수 (Anton's Technic LED module = 8개)
+NEO_WHITE = (200, 200, 200)   # 흰색 밝기 (0~255). 255,255,255 면 최대(전류↑)
+#   전원 인가 시 바로 흰색으로 켜져 카메라 광량을 확보한다.
+#   너무 밝거나 전류가 부담되면 위 값을 (120,120,120) 등으로 낮춘다.
 
 SPIKE_COLOR_ID = 61     # SPIKE 색 센서의 장치 ID
 
@@ -182,7 +195,24 @@ def build_modes():
     ]
 
 
+def light_on(color):
+    """전원 인가 시 WS2812 조명을 켠다 (실패해도 본체 동작에는 지장 없음)."""
+    if neopixel is None:
+        return None
+    try:
+        np = neopixel.NeoPixel(Pin(NEO_PIN), NEO_COUNT)
+        for i in range(NEO_COUNT):
+            np[i] = color
+        np.write()
+        return np
+    except Exception:
+        return None
+
+
 def main():
+    # ★ 전원이 들어오면 가장 먼저 카메라 조명을 흰색으로 켠다
+    light_on(NEO_WHITE)
+
     # 상태 표시 LED (없어도 동작에는 지장 없음)
     try:
         led = Pin(LED_PIN, Pin.OUT)
